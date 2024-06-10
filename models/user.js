@@ -9,53 +9,40 @@ class User extends Sequelize.Model{
 
 // 2) Create Attributes or Columns.
 const attributes = {
-    id: {
+    userId: {
         type: Sequelize.BIGINT,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false
     },
-    email: {
+    deviceId: {
         type: Sequelize.STRING(100),
-        unique: true,
-        validate: {
-            isEmail: true
-        }
     },
     phone: {
         type: Sequelize.STRING(15)
     },
-    first_name: {
-        type: Sequelize.STRING(100)
-    },
-    last_name: {
+    name: {
         type: Sequelize.STRING(100)
     },
     password: {
         type: Sequelize.STRING(100)
     },
-    city: {
-        type: Sequelize.STRING(50)
+    availCoins: {
+        type: Sequelize.INTEGER
     },
-    state: {
-        type: Sequelize.STRING(50)
-    },
-    country: {
-        type: Sequelize.STRING(50)
-    },
-    zip: {
-        type: Sequelize.INTEGER(16)
+    isPrime: {
+        type: Sequelize.BOOLEAN
     }
 }
 
 // 3) Create Options for table.
 const options = {
     sequelize: database,
-    modelName: 'user',
+    modelName: 'users',
     // It will not make modelName plural, default value is false.
     freezeTableName: true,
     // It will not create createdAt and updatedAt columns in table.
-    timestamps: true
+    timestamps: false
 }
 
 module.exports = User.init(attributes, options)
