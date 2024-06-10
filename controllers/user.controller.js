@@ -211,10 +211,61 @@ module.exports.getProfile = function(req,res) {
 
 // Send friend request
 
-module.exports.sendRequest = function(req,res) {
-    try{
-    // 1) Validate request parameters
-    const bodyData = req.body
+// module.exports.sendRequest = function(req,res) {
+//     try{
+//     // 1) Validate request parameters
+//     const bodyData = req.body
+//     const fromUserId = req.decoded.userId
+
+//     /* preparing the validation body */
+//     const validatedObject = Joi.object({
+//         toUserId: Joi.string().required(),
+//     })
+//     /* validating the validation values */
+//     const validateValue = validatedObject.validate({
+//         toUserId: bodyData.toUserId,
+//     }, { abortEarly: false })
+//     /* converts errors in key : value pair */
+//     const convertToForms = joiToForms()
+//     const errMsg = convertToForms(validateValue.error)
+
+//     /* checking for any validation error, If received error then throw it to client */
+//     if (errMsg) {
+//         return res.status(200).json({
+//             success: false,
+//             message: "Validation failed for given parameters",
+//             error: errMsg
+//         })
+//     }
+//     const createFriendRequestValue = {fromUserId:fromUserId,toUserId:validateValue.value.toUserId}
+//     FriendRequest.create(createFriendRequestValue).then(data => {
+//         if(data){
+//             res.status(200).json({
+//                 success: true,
+//                 message: "friend request send successfully",
+//                 response: data
+//             })
+//         }else{
+//             res.status(200).json({
+//                 success: true,
+//                 message: "database error"
+//             })
+//         }
+//     })
+// }catch(error){
+//     res.status(500).json({
+//         success: false,
+//         message: "server error"
+//     })
+// }
+
+// }
+
+module.exports.createFriendRequest = async function (req, res) {
+    const { toUserId } = req.body;
+
+    try {
+        // 1) Validate request parameters
     const fromUserId = req.decoded.userId
 
     /* preparing the validation body */
@@ -223,7 +274,7 @@ module.exports.sendRequest = function(req,res) {
     })
     /* validating the validation values */
     const validateValue = validatedObject.validate({
-        toUserId: bodyData.toUserId,
+        toUserId: toUserId,
     }, { abortEarly: false })
     /* converts errors in key : value pair */
     const convertToForms = joiToForms()
@@ -237,26 +288,48 @@ module.exports.sendRequest = function(req,res) {
             error: errMsg
         })
     }
-    const createFriendRequestValue = {fromUserId,toUserId:validateValue.value.toUserId}
-    FriendRequest.create(createFriendRequestValue).then(data => {
-        if(data){
-            res.status(200).json({
-                success: true,
-                message: "friend request send successfully",
-                response: data
-            })
-        }else{
-            res.status(200).json({
-                success: true,
-                message: "database error"
-            })
-        }
-    })
-}catch(error){
-    res.status(500).json({
-        success: false,
-        message: "server error"
-    })
-}
+        // Validate if fromUserId and toUserId exist in the users table
+        const fromUser = await User.findOne({ where: { userId: fromUserId } });
+        const toUser = await User.findOne({ where: { userId: validateValue.value.toUserId } });
 
-}
+        if (!fromUser) {
+            return res.status(404).json({
+                success: false,
+                message: "From user not found",
+            });
+        }
+
+        if (!toUser) {
+            return res.status(404).json({
+                success: false,
+                message: "To user not found",
+            });
+        }
+
+        // Create friend request
+        const createFriendRequestValue = { fromUserId, toUserId: validateValue.value.toUserId };
+        const data = await FriendRequest.create(createFriendRequestValue);
+
+        if (data) {
+            return res.status(200).json({
+                success: true,
+                message: "Friend request sent successfully",
+                response: data,
+            });
+        } else {
+            return res.status(500).json({
+                success: false,
+                message: "Database error",
+            });
+        }
+    } catch (error) {
+        console.error("Error creating friend request:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: error.message,
+        });
+    }
+};
+
+

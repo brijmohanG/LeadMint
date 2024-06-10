@@ -8,7 +8,7 @@ const middleware = require('../middleware/auth')
 router.post("/registration", user.registerUser)
 router.get("/login", user.login)
 router.get("/profile/:userId", middleware.authenticateToken, user.getProfile)
-router.post("./friend-request", middleware.authenticateToken, user.sendRequest)
+router.post("/friend-request", middleware.authenticateToken, user.createFriendRequest)
 
 // chatroom API 
 

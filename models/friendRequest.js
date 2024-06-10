@@ -22,7 +22,7 @@ const attributes = {
         type: Sequelize.STRING(256)
     },
     status: {
-        type: Sequelize.BIGINT
+        type: Sequelize.STRING
     }
 }
 
